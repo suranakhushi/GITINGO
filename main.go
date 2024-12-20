@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"gopract/commands"
 	"gopract/config"
 	"gopract/repository"
 	"os"
@@ -18,7 +19,7 @@ func main() {
 
 	// Check if a command is provided
 	if len(os.Args) < 2 {
-		fmt.Println("Usage: gopract <command> [arguments]")
+		printUsage()
 		return
 	}
 
@@ -31,9 +32,31 @@ func main() {
 		handleConfig()
 	case "set-config":
 		handleSetConfig(os.Args[2:])
+	case "hash-object":
+		handleHashObject(os.Args[2:])
+	case "cat-file":
+		handleCatFile(os.Args[2:])
+	case "add":
+		handleAdd(os.Args[2:])
+	case "commit":
+		handleCommit(os.Args[2:])
 	default:
 		fmt.Printf("Unknown command: %s\n", command)
+		printUsage()
 	}
+}
+
+// printUsage prints the help message for using the CLI
+func printUsage() {
+	fmt.Println("Usage: gopract <command> [arguments]")
+	fmt.Println("Commands:")
+	fmt.Println("  init          Initialize a new repository")
+	fmt.Println("  config        Show repository configuration")
+	fmt.Println("  set-config    Set configuration values")
+	fmt.Println("  hash-object   Compute hash of a file and optionally write it")
+	fmt.Println("  cat-file      Show content of a repository object")
+	fmt.Println("  add           Add files to the staging area")
+	fmt.Println("  commit        Commit staged changes to the repository")
 }
 
 // handleConfig processes the `config` command to display configuration details.
@@ -76,8 +99,6 @@ func handleConfig() {
 	fmt.Printf("File Mode: %t\n", finalCfg.Core.FileMode)
 	fmt.Printf("Bare Repository: %t\n", finalCfg.Core.Bare)
 }
-
-// mergeConfigs merges local and global configurations, prioritizing local values.
 func mergeConfigs(local, global *config.Config) *config.Config {
 	final := &config.Config{}
 
@@ -174,4 +195,69 @@ func handleSetConfig(args []string) {
 	}
 
 	fmt.Printf("Configuration updated in %s: [%s] = %s\n", configPath, *key, *value)
+}
+
+func handleHashObject(args []string) {
+	hashFlags := flag.NewFlagSet("hash-object", flag.ExitOnError)
+	write := hashFlags.Bool("w", false, "Write the object to the database")
+	filePath := hashFlags.String("file", "", "File path to hash")
+	hashFlags.Parse(args)
+
+	if *filePath == "" {
+		fmt.Println("File path is required")
+		return
+	}
+
+	err := commands.HashObject(".", *filePath, *write)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+	}
+}
+
+func handleCatFile(args []string) {
+	catFlags := flag.NewFlagSet("cat-file", flag.ExitOnError)
+	sha := catFlags.String("sha", "", "SHA of the object to read")
+	catFlags.Parse(args)
+
+	if *sha == "" {
+		fmt.Println("SHA is required")
+		return
+	}
+
+	err := commands.CatFile(".", *sha)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+	}
+}
+
+func handleAdd(args []string) {
+	addFlags := flag.NewFlagSet("add", flag.ExitOnError)
+	filePath := addFlags.String("file", "", "File to add to the staging area")
+	addFlags.Parse(args)
+
+	if *filePath == "" {
+		fmt.Println("File path is required")
+		return
+	}
+
+	err := commands.Add(".", *filePath)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+	}
+}
+
+func handleCommit(args []string) {
+	commitFlags := flag.NewFlagSet("commit", flag.ExitOnError)
+	message := commitFlags.String("m", "", "Commit message")
+	commitFlags.Parse(args)
+
+	if *message == "" {
+		fmt.Println("Commit message is required")
+		return
+	}
+
+	err := commands.Commit(".", *message)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+	}
 }
