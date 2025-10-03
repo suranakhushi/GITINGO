@@ -23,63 +23,34 @@ GoVCS is a **Git-inspired version control system** built in **Go (Golang)**. It 
 - **Version Control Principles:** Inspired by Git’s object storage and commit history mechanism  
 
 ---
+# Build the GoVCS binary
+go build -o govcs
 
-Initialize a repository
-
-Use the init command to create a new GoVCS repository in a specified directory.
-
+# Initialize a repository
 ./govcs init --path <directory>
-
-
-Example: Initialize in the current directory:
-
 ./govcs init --path .
 
-View repository configuration
-
-The config command displays the current repository’s configuration, including local and global settings.
-
+# View repository configuration
 ./govcs config
 
-Set configuration values
-
-Use set-config to define user information or other config values. You can set values locally (for the repo) or globally (for all repos).
-
-# Set user name in local repository config
+# Set configuration values
 ./govcs set-config --key user.name --value "Your Name" --local
-
-# Set user email in global config
 ./govcs set-config --key user.email --value "you@example.com" --global
 
-Compute hash of a file
-
-The hash-object command calculates the SHA-1 hash of a file, optionally writing it to the object database.
-
-# Compute hash without writing to database
+# Compute hash of a file
 ./govcs hash-object --file <file-path>
-
-# Compute hash and write to the database
 ./govcs hash-object -w --file <file-path>
 
-Display content of a repository object
-
-Use cat-file to view the contents of a specific object using its SHA hash.
-
+# Display content of a repository object
 ./govcs cat-file --sha <object-sha>
 
-Add a file to the staging area
-
-The add command stages a file for the next commit.
-
+# Add a file to the staging area
 ./govcs add --file <file-path>
-
-
-Example: Stage main.go
-
 ./govcs add --file main.go
 
-Commit staged changes
+# Commit staged changes
+./govcs commit -m "Initial commit"
 
-The commit command records the staged changes in the repository with a message describing the commit.
+
 
 ./govcs commit -m "Initial commit"
